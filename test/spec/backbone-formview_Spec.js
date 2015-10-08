@@ -1,41 +1,40 @@
-/*global Backbone, jQuery, _, describe, it, expect, spyOn, waitsFor, beforeEach */
 (function (root, $, Backbone, _) {
-    "use strict";
+    'use strict';
 
     describe('Backbone.FormView', function () {
-        var testForm,
-            testModel,
-            testCollection,
-            testSchema = {
-                foo : {
-                    type: 'Text',
-                    options : {
-                        label: 'Foo',
-                        elementType: 'textarea'
+        var testForm;
+        var testModel;
+        var testCollection;
+        var testSchema = {
+            foo : {
+                type: 'Text',
+                options : {
+                    label: 'Foo',
+                    elementType: 'textarea'
+                }
+            },
+            bar : {
+                type: 'RadioList',
+                options: {
+                    label: 'Bar',
+                    collection: true,
+                    possibleVals: {
+                        a : 'Option A',
+                        b : 'Option B'
                     }
-                },
-                bar : {
-                    type: 'RadioList',
-                    options: {
-                        label: 'Bar',
-                        collection: true,
-                        possibleVals: {
-                            a : 'Option A',
-                            b : 'Option B'
-                        }
-                    }
-                },
-                baz : {
-                    type: 'FieldSet',
-                    options : {
-                        schema: {
-                            bazFoo : {
-                                type : 'Text'
-                            }
+                }
+            },
+            baz : {
+                type: 'FieldSet',
+                options : {
+                    schema: {
+                        bazFoo : {
+                            type : 'Text'
                         }
                     }
                 }
-            };
+            }
+        };
 
         describe('FormView', function () {
 
@@ -179,7 +178,8 @@
 
                 describe('setupOnInit', function () {
                     it('should call setupFields on FormView initialization', function () {
-                        var orig = Backbone.FormView.prototype.setupFields, form;
+                        var orig = Backbone.FormView.prototype.setupFields;
+                        var form;
                         spyOn(Backbone.FormView.prototype, 'setupFields');
                         form = new Backbone.FormView({
                             schema: testSchema,
@@ -246,8 +246,8 @@
 
                 it('should preserve DOM events of subviews/fields when rerendering if they are attached to the DOM', function () {
                     testForm.render();
-                    var $testWrapper = $('<div id="test"></div>').hide(),
-                        wasTriggered;
+                    var $testWrapper = $('<div id="test"></div>').hide();
+                    var wasTriggered;
                     testForm.subs.get('foo').$el.on('test', function () {
                         wasTriggered = true;
                     });
@@ -268,16 +268,16 @@
 
         describe('CollectionFormView', function () {
             var testCollectionData = [{
-                    foo: 'Test 1',
-                    bar: 'A'
-                }, {
-                    foo: 'Test 2',
-                    bar: 'B'
-                }, {
-                    foo:  'Test 3',
-                    bar: 'C'
-                }],
-                testOpts;
+                foo: 'Test 1',
+                bar: 'A'
+            }, {
+                foo: 'Test 2',
+                bar: 'B'
+            }, {
+                foo:  'Test 3',
+                bar: 'C'
+            }];
+            var testOpts;
             beforeEach(function () {
                 testCollection = new Backbone.Collection(testCollectionData);
                 testOpts = {
@@ -290,9 +290,9 @@
             describe('"setupOnInit" option', function () {
                 it('should invoke "setupRows" method in initialization', function () {
                     testOpts.setupOnInit = true;
-                    var proto = Backbone.CollectionFormView.prototype,
-                        old = proto.setupRows,
-                        view;
+                    var proto = Backbone.CollectionFormView.prototype;
+                    var old = proto.setupRows;
+                    var view;
                     spyOn(proto, 'setupRows').and.callThrough();
                     view = new Backbone.CollectionFormView(testOpts);
                     expect(proto.setupRows).toHaveBeenCalled();
@@ -323,8 +323,8 @@
                 });
                 it('should remove any exising row subviews if they exists and recreate them from the collection', function () {
                     testForm.setupRows();
-                    var cid1 = testForm.subs.get('row')[0].cid,
-                        cid2 = testForm.subs.get('row')[1].cid;
+                    var cid1 = testForm.subs.get('row')[0].cid;
+                    var cid2 = testForm.subs.get('row')[1].cid;
                     testForm.setupRows();
                     expect(testForm.subs.get('row').length).toBe(3);
                     expect(testForm.subs.get('row')[0].cid).not.toBe(cid1);
@@ -387,8 +387,8 @@
                     expect(testForm.collection.get(view.model)).toBeFalsy();
                 });
                 it('should remove a row subview and it\'s model from the collection when a row subview\'s model is a passed', function () {
-                    var view = testForm.subs.get('row')[1],
-                        model = view.model;
+                    var view = testForm.subs.get('row')[1];
+                    var model = view.model;
                     testForm.deleteRow(model);
                     expect(_.findWhere(testForm.subs.get('row'), { cid : view.cid })).toBeFalsy();
                     expect(testForm.collection.get(model)).toBeFalsy();
@@ -418,16 +418,16 @@
                 });
                 describe('"getFieldPrefix" method', function () {
                     it('should return the parentView getFieldPrefix result, plus the index, plus a trailing "-"', function () {
-                        var index = 0,
-                            parentPrefix = 'testing-';
+                        var index = 0;
+                        var parentPrefix = 'testing-';
                         testForm.getFieldPrefix = function () { return parentPrefix; };
                         expect(testForm.subs.get('row')[index].getFieldPrefix()).toBe(parentPrefix + index + '-');
                     });
                 });
                 describe('"deleteSelf" method', function () {
                     it('should invoke "deleteRow" method of the parentView with the row instance as the param', function () {
-                        var row = testForm.subs.get('row')[1],
-                            length = testForm.subs.get('row').length;
+                        var row = testForm.subs.get('row')[1];
+                        var length = testForm.subs.get('row').length;
                         spyOn(testForm, 'deleteRow').and.callThrough();
                         row.deleteSelf();
                         expect(testForm.deleteRow).toHaveBeenCalledWith(row);
@@ -440,7 +440,8 @@
         });
 
         describe('FieldView', function () {
-            var testField, testOpts;
+            var testField;
+            var testOpts;
             beforeEach(function () {
                 testOpts = {
                     schemaKey: 'testField',
@@ -457,7 +458,8 @@
                 });
                 describe('twoWay', function () {
                     it('should invoke "setupTwoWay" method on initialization', function () {
-                        var view, oldSetupTwoWay = Backbone.fields.FieldView.prototype.setupTwoWay;
+                        var view;
+                        var oldSetupTwoWay = Backbone.fields.FieldView.prototype.setupTwoWay;
                         spyOn(Backbone.fields.FieldView.prototype, 'setupTwoWay');
                         testOpts.twoWay = true;
                         view = new Backbone.fields.FieldView(testOpts);
@@ -497,10 +499,10 @@
                     expect(testField.renderInput).toHaveBeenCalled();
                 });
                 it('should invoke the template function and place it view el when "renderWrapper" is called', function () {
-                    var html = '<div class="test-wrapper-div"><label><%= obj.label %></label></div>',
-                        testLabel = 'Test Label',
-                        renderedHtml = html.replace('<%= obj.label %>', testLabel),
-                        vars = { label: testLabel };
+                    var html = '<div class="test-wrapper-div"><label><%= obj.label %></label></div>';
+                    var testLabel = 'Test Label';
+                    var renderedHtml = html.replace('<%= obj.label %>', testLabel);
+                    var vars = { label: testLabel };
                     testField.template = _.template(html);
                     testField.templateVars = vars;
                     spyOn(testField, 'template').and.callThrough();
@@ -601,8 +603,8 @@
                     testField.render();
                 });
                 it('should call "getModelVal" and pass on the result by default', function () {
-                    var modelVal = testModel.get(testField.fieldName),
-                        valForInput;
+                    var modelVal = testModel.get(testField.fieldName);
+                    var valForInput;
                     expect(testField.getModelVal()).toBe(modelVal);
                     spyOn(testField, 'getModelVal').and.callThrough();
                     valForInput = testField.getValueForInput();
@@ -651,8 +653,8 @@
                     });
                 });
                 it('should occur when user changes input value and exits the field input', function () {
-                    var calledSetModelAttrs = false,
-                        old = Backbone.fields.FieldView.prototype.setModelAttrs;
+                    var calledSetModelAttrs = false;
+                    var old = Backbone.fields.FieldView.prototype.setModelAttrs;
                     Backbone.fields.FieldView.prototype.setModelAttrs = function (e) {
                         calledSetModelAttrs = true;
                         old.call(this, e);
@@ -683,7 +685,8 @@
         });
 
         describe('RadioListView', function () {
-            var testField, testOpts;
+            var testField;
+            var testOpts;
             beforeEach(function () {
                 testOpts = {
                     schemaKey: 'testField',
@@ -772,7 +775,6 @@
                     testField.render();
                     var radios = testField.$('input[type="radio"]');
                     var i = 0;
-                    var radio;
                     for (i; i < radios.length; i++) {
                         expect(radios.eq(i).attr('class')).toBe(testClass);
                     }
@@ -783,7 +785,6 @@
                     testField.render();
                     var radios = testField.$('input[type="radio"]');
                     var i = 0;
-                    var radio;
                     for (i; i < radios.length; i++) {
                         expect(radios.eq(i).attr('id')).toBe(testId + '-' + i);
                         expect(radios.eq(i).attr('name')).toBe(testId);
@@ -805,7 +806,8 @@
         });
 
         describe('SelectListView', function () {
-            var testField, testOpts;
+            var testField;
+            var testOpts;
             beforeEach(function () {
                 testOpts = {
                     schemaKey: 'testField',
@@ -901,7 +903,7 @@
                     testField.inputId = 'test-id';
                     testField.renderInput();
                     expect(testField.$('select').attr('class')).toBe('test-class');
-                    expect(testField.$('select').attr('id')).toBe('test-id')
+                    expect(testField.$('select').attr('id')).toBe('test-id');
                 });
             });
 
@@ -913,7 +915,8 @@
         });
 
         describe('CheckListView', function () {
-            var testField, testOpts;
+            var testField;
+            var testOpts;
             beforeEach(function () {
                 testOpts = {
                     schemaKey: 'testField',
@@ -1018,7 +1021,8 @@
         });
 
         describe('CheckBoxView', function () {
-            var testField, testOpts;
+            var testField;
+            var testOpts;
             beforeEach(function () {
                 testOpts = {
                     schemaKey: 'testField',
@@ -1076,7 +1080,8 @@
         });
 
         describe('FieldSetView', function () {
-            var testFieldSet, testOpts;
+            var testFieldSet;
+            var testOpts;
             beforeEach(function () {
                 testModel = new Backbone.Model();
                 testOpts = {
@@ -1097,8 +1102,8 @@
             });
             describe('"getFieldPrefix" method', function () {
                 it('should invoke the fieldSet parent view\'s getFieldPrefix method and return the result of that plus the fieldSetName property', function () {
-                    var parentView = new Backbone.BaseView(),
-                        parentPref = 'test-parent-prefix-';
+                    var parentView = new Backbone.BaseView();
+                    var parentPref = 'test-parent-prefix-';
                     parentView.getFieldPrefix = function () {
                         return parentPref;
                     };
@@ -1109,7 +1114,9 @@
         });
 
         describe('CollectionFieldSetView', function () {
-            var testFieldSet, testOpts, testColl;
+            var testFieldSet;
+            var testOpts;
+            var testColl;
             beforeEach(function () {
                 testColl = new Backbone.Collection();
                 testOpts = {
@@ -1132,4 +1139,4 @@
 
     });
 
-}(this, jQuery, Backbone, _));
+}(this, jQuery, Backbone, _)); //eslint-disable-line no-undef
