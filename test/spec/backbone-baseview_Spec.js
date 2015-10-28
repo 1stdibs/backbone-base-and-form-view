@@ -1,95 +1,87 @@
-/*global Backbone, jQuery, _, describe, it, expect, spyOn, waitsFor, beforeEach */
 (function (root, $, Backbone, _) {
-    "use strict";
+    'use strict';
 
     describe('Backbone.BaseView', function () {
         var testData = [{
-                firstName: 'Joe',
-                lastName: 'Shmoe',
-                registered: true
-            }, {
-                firstName: 'Sara',
-                lastName: 'Shmara',
-                registered: true
-            }, {
-                firstName: 'Harry',
-                lastName: 'Shmarry',
-                registered: false
-            }],
-
-            testCollection = new Backbone.Collection(testData),
-
-            testView,
-
-            toString = Object.prototype.toString,
-
-            ViewWithOpts = Backbone.BaseView.extend({
-                initialize: function (options) {
-                    this.options = options;
+            firstName: 'Joe',
+            lastName: 'Shmoe',
+            registered: true
+        }, {
+            firstName: 'Sara',
+            lastName: 'Shmara',
+            registered: true
+        }, {
+            firstName: 'Harry',
+            lastName: 'Shmarry',
+            registered: false
+        }];
+        var testCollection = new Backbone.Collection(testData);
+        var testView;
+        var toString = Object.prototype.toString;
+        var ViewWithOpts = Backbone.BaseView.extend({
+            initialize: function (options) {
+                this.options = options;
+            }
+        });
+        var TableView = Backbone.BaseView.extend({
+            tagName: 'table',
+            template: _.template('<thead></thead><tbody></tbody>'),
+            subViewConfig: {
+                row : {
+                    construct: 'RowView',
+                    location: 'tbody'
+                },
+                headingRow: {
+                    construct: 'HeadingRowView',
+                    location: 'thead',
+                    singleton: true
                 }
-            }),
-
-            TableView = Backbone.BaseView.extend({
-                tagName: 'table',
-                template: _.template('<thead></thead><tbody></tbody>'),
-                subViewConfig: {
-                    row : {
-                        construct: 'RowView',
-                        location: 'tbody'
-                    },
-                    headingRow: {
-                        construct: 'HeadingRowView',
-                        location: 'thead',
-                        singleton: true
-                    }
-                },
-                setup: function () {
-                    this.subs.add('headingRow', {
-                        cols: ['First Name', 'Last Name', 'Actions']
-                    });
-                    this.collection.each(function (rowModel) {
-                        this.subs.add('row', { model: rowModel });
-                    }, this);
-                    return this;
-                },
-                render: function () {
-                    this.$el.html(this.template());
-                    return this;
-                },
-                renderSubs: function () {
-                    this.subs.renderAppend({ clearLocations: true });
-                    return this;
-                },
-                viewEvents: {
-                    'submit' : function (arg, view) {
-                        this.wasSubmitted = true;
-                        this.submissionArg = arg;
-                        this.submissionView = view;
-                    }
+            },
+            setup: function () {
+                this.subs.add('headingRow', {
+                    cols: ['First Name', 'Last Name', 'Actions']
+                });
+                this.collection.each(function (rowModel) {
+                    this.subs.add('row', { model: rowModel });
+                }, this);
+                return this;
+            },
+            render: function () {
+                this.$el.html(this.template());
+                return this;
+            },
+            renderSubs: function () {
+                this.subs.renderAppend({ clearLocations: true });
+                return this;
+            },
+            viewEvents: {
+                'submit' : function (arg, view) {
+                    this.wasSubmitted = true;
+                    this.submissionArg = arg;
+                    this.submissionView = view;
                 }
-            }),
+            }
+        });
+        var RowView = Backbone.BaseView.extend({
+            tagName: 'tr',
+            autoInitSubViews: true,
+            subViewConfig: {
+                a: {
+                    singleton: true,
+                    construct: 'Backbone.BaseView'
+                }
+            },
+            initialize: function (opts) { this.options = opts; }
+        });
+        var HeadingRowView = Backbone.BaseView.extend({
+            tagName: 'tr',
+            initialize: function (opts) { this.options = opts; }
+        });
 
-            RowView = Backbone.BaseView.extend({
-                tagName: 'tr',
-                autoInitSubViews: true,
-                subViewConfig: {
-                    a: {
-                        singleton: true,
-                        construct: 'Backbone.BaseView'
-                    }
-                },
-                initialize: function (opts) { this.options = opts; }
-            }),
-
-            HeadingRowView = Backbone.BaseView.extend({
-                tagName: 'tr',
-                initialize: function (opts) { this.options = opts; }
-            }),
-
-            ActionsView = Backbone.BaseView.extend({
-                tagName: 'td',
-                initialize: function (opts) { this.options = opts; }
-            });
+        var ActionsView = Backbone.BaseView.extend({
+            tagName: 'td',
+            initialize: function (opts) { this.options = opts; }
+        });
 
         _.extend(root, {
             TableView : TableView,
@@ -119,11 +111,11 @@
                 describe('with the "add" method', function () {
 
                     var data = {
-                            firstName: 'Jeff',
-                            lastName: 'Schmeff',
-                            registered: false
-                        },
-                        model = new Backbone.Model(data);
+                        firstName: 'Jeff',
+                        lastName: 'Schmeff',
+                        registered: false
+                    };
+                    var model = new Backbone.Model(data);
 
                     it('should allow you to add subviews for prededfined non-singleton types', function () {
 
@@ -169,9 +161,9 @@
 
                     it('should allow you to dynamically add a subview of a type that hasn\'t been defined yet', function () {
                         var view = new Backbone.View({
-                                model: model
-                            }),
-                            beforeLen = testView.subs.subViews.length;
+                            model: model
+                        });
+                        var beforeLen = testView.subs.subViews.length;
                         testView.subs.add('testNotPredefinedType', view);
                         expect(testView.subs.last().cid).toBe(view.cid);
                         expect(testView.subs.subViews.length).toBeGreaterThan(beforeLen);
@@ -179,9 +171,9 @@
 
                     it('should allow you to dynamically add a singleton subview that hasn\'t been defined yet', function () {
                         var view = new Backbone.View({
-                                model: model
-                            }),
-                            beforeLen = testView.subs.subViews.length;
+                            model: model
+                        });
+                        var beforeLen = testView.subs.subViews.length;
                         testView.subs.add('testNotPredefinedType', view, true);
                         expect(testView.subs.last().cid).toBe(view.cid);
                         expect(testView.subs.subViews.length).toBeGreaterThan(beforeLen);
@@ -189,14 +181,14 @@
                     });
 
                     it('should allow you add an array of instances as a particular type of subviews', function () {
-                        var model1 = testCollection.at(0),
-                            model2 = testCollection.at(1),
-                            view1 = new RowView({
-                                model: model1
-                            }),
-                            view2 = new RowView({
-                                model: model2
-                            });
+                        var model1 = testCollection.at(0);
+                        var model2 = testCollection.at(1);
+                        var view1 = new RowView({
+                            model: model1
+                        });
+                        var view2 = new RowView({
+                            model: model2
+                        });
 
                         testView.subs.add('row', [{
                             model: model1
@@ -257,18 +249,18 @@
 
                     it('should use the "defaultToSingletons" property if singleton is left blank in the config', function () {
                         var MyView = Backbone.BaseView.extend({
-                                singletonSubViews: true,
-                                subViewConfig: {
-                                    foo: {
-                                        construct: Backbone.BaseView
-                                    },
-                                    bar: {
-                                        construct: Backbone.BaseView,
-                                        singleton: false
-                                    }
+                            singletonSubViews: true,
+                            subViewConfig: {
+                                foo: {
+                                    construct: Backbone.BaseView
+                                },
+                                bar: {
+                                    construct: Backbone.BaseView,
+                                    singleton: false
                                 }
-                            }),
-                            view = new MyView();
+                            }
+                        });
+                        var view = new MyView();
                         expect(view.subs.defaultToSingletons).toBe(true);
                         view.subs.create('foo');
                         view.subs.create('bar');
@@ -317,8 +309,8 @@
 
                 describe('with the "addInstance" method', function () {
                     it('should allow you to add an existing instance to the subviews and associate it with a key', function () {
-                        var view = new Backbone.BaseView(),
-                            view2 = new Backbone.BaseView();
+                        var view = new Backbone.BaseView();
+                        var view2 = new Backbone.BaseView();
                         testView.subs.addInstance('testType', view);
                         expect(testView.subs.get('testType')[0]).toBe(view);
                         testView.subs.addInstance('testType', view2);
@@ -336,21 +328,21 @@
 
                 describe('with the "addInstances" method', function () {
                     it('should allow you to add existing instances as an array and associate them with a key', function () {
-                        var view = new Backbone.BaseView(),
-                            view2 = new Backbone.BaseView();
+                        var view = new Backbone.BaseView();
+                        var view2 = new Backbone.BaseView();
                         testView.subs.addInstances('testType', [view, view2]);
                         expect(testView.subs.get('testType')[0]).toBe(view);
                         expect(testView.subs.get('testType')[1]).toBe(view2);
                     });
                     it('should only add one instance if the key is configured as a singleton', function () {
-                        var view = new HeadingRowView(),
-                            view2 = new HeadingRowView();
+                        var view = new HeadingRowView();
+                        var view2 = new HeadingRowView();
                         testView.subs.addInstances('headingRow', [view, view2]);
                         expect(testView.subs.get('headingRow').cid).toBe(view.cid);
                     });
                     it('should allow you to add existing instances as subviews without a key', function () {
-                        var view = new Backbone.BaseView(),
-                            view2 = new Backbone.BaseView();
+                        var view = new Backbone.BaseView();
+                        var view2 = new Backbone.BaseView();
                         testView.subs.addInstances([view, view2]);
                         expect(testView.subs.subViews.length).toBe(2);
                         expect(testView.subs.subViews[0].cid).toBe(view.cid);
@@ -360,9 +352,9 @@
 
                 describe('with the "addInstancesWithMap" method', function () {
                     it('should allow you to add existing instances for different keys using an object map', function () {
-                        var view = new Backbone.BaseView(),
-                            view2 = new Backbone.BaseView(),
-                            headingRow = new HeadingRowView();
+                        var view = new Backbone.BaseView();
+                        var view2 = new Backbone.BaseView();
+                        var headingRow = new HeadingRowView();
                         testView.subs.addInstancesWithMap({
                             foo: view,
                             bar: view2,
@@ -376,10 +368,10 @@
 
                 describe('with "createFromKeys"', function () {
                     var init = function (options) {
-                            this.options = options;
-                        },
-                        ConstructA = Backbone.BaseView.extend({ initialize: init }),
-                        ConstructB = Backbone.BaseView.extend({ initialize: init });
+                        this.options = options;
+                    };
+                    var ConstructA = Backbone.BaseView.extend({ initialize: init });
+                    var ConstructB = Backbone.BaseView.extend({ initialize: init });
                     beforeEach(function () {
                         testView.subs.addConfig('a', {
                             construct: ConstructA,
@@ -439,8 +431,8 @@
 
                 describe('with "overrideSingleton"', function () {
                     it('should allow you to override an existing singleton instance for a type that isn\'t predefined', function () {
-                        var view = new Backbone.BaseView(),
-                            view2  = new Backbone.BaseView();
+                        var view = new Backbone.BaseView();
+                        var view2  = new Backbone.BaseView();
                         testView.subs.overrideSingleton('singletonType', view);
                         expect(testView.subs.get('singletonType')).toBe(view);
                         testView.subs.overrideSingleton('singletonType', view2);
@@ -485,8 +477,8 @@
 
                 it('should allow switching the default state of subviews types to being singletons', function () {
                     testView.subs.defaultToSingletons = true;
-                    var view1 = new Backbone.View(),
-                        view2 = new Backbone.View();
+                    var view1 = new Backbone.View();
+                    var view2 = new Backbone.View();
                     view1.name = 'A';
                     view2.name = 'B';
                     testView.subs.add('testType', view1);
@@ -521,10 +513,10 @@
                 });
 
                 it('should allow retrieval of subviews by the model, if the view had a model when added', function () {
-                    var testModel = new Backbone.Model(),
-                        testTypeView = new Backbone.View({
-                            model: testModel
-                        });
+                    var testModel = new Backbone.Model();
+                    var testTypeView = new Backbone.View({
+                        model: testModel
+                    });
                     testView.subs.add('row', {
                         model : testModel
                     });
@@ -609,8 +601,8 @@
                 });
 
                 it('should append subview "el" elements to their type\'s configured location if "renderAppend" is called without arguments', function () {
-                    var headbeforeLen = testView.$('thead').children().length,
-                        bodyBeforeLen = testView.$('tbody').children().length;
+                    var headbeforeLen = testView.$('thead').children().length;
+                    var bodyBeforeLen = testView.$('tbody').children().length;
                     testView.subs.renderAppend();
                     expect(testView.$('thead').children().length).toBeGreaterThan(headbeforeLen);
                     expect(testView.$('thead').children().length).toBe(1);
@@ -665,15 +657,15 @@
                     expect(testView.subs.filteredSubs('headingRow').at(0).getSubViewType()).toBe('headingRow');
                 });
                 it('should allow passing an array of subviews that will be used to create the new filtered instance', function () {
-                    var i = 0,
-                        subViews = testView.subs.filter(function (subView) {
-                            if (subView.getSubViewType() === 'row') {
-                                i++;
-                                if (i % 2 === 1) {
-                                    return true;
-                                }
+                    var i = 0;
+                    var subViews = testView.subs.filter(function (subView) {
+                        if (subView.getSubViewType() === 'row') {
+                            i++;
+                            if (i % 2 === 1) {
+                                return true;
                             }
-                        });
+                        }
+                    });
                     expect(testView.subs.filteredSubs(subViews).subViews.length).toBe(2);
                     expect(testView.subs.filteredSubs(subViews).subViews[0].cid).toBe(subViews[0].cid);
                     expect(testView.subs.filteredSubs(subViews).subViews[1].cid).toBe(subViews[1].cid);
@@ -700,9 +692,9 @@
                 });
 
                 it('should call a passed function for every subview and every subview\'s subview', function () {
-                    var i = 0,
-                        len = descendView.subs.subViews.length +
-                            descendView.subs.get('typeA').subs.get('typeAsubTypeA').length;
+                    var i = 0;
+                    var len = descendView.subs.subViews.length +
+                        descendView.subs.get('typeA').subs.get('typeAsubTypeA').length;
                     descendView.subs.descend(function () {
                         i++;
                     });
@@ -710,10 +702,10 @@
                 });
 
                 it('should set the context ("this") to switch to each subview instance', function () {
-                    var wasTypeB,
-                        wasTypeASubTypeA,
-                        typeB = descendView.subs.get('typeB')[0],
-                        typeAsubTypeA = descendView.subs.get('typeA').subs.get('typeAsubTypeA')[1];
+                    var wasTypeB;
+                    var wasTypeASubTypeA;
+                    var typeB = descendView.subs.get('typeB')[0];
+                    var typeAsubTypeA = descendView.subs.get('typeA').subs.get('typeAsubTypeA')[1];
                     descendView.subs.descend(function () {
                         if (this.cid === typeB.cid) {
                             wasTypeB = true;
@@ -726,9 +718,9 @@
                 });
 
                 it('should invoke a method on a subview if a string matching a method name is passed, and do nothing otherwise', function () {
-                    var typeB = descendView.subs.get('typeB')[0],
-                        typeAsubTypeA = descendView.subs.get('typeA').subs.get('typeAsubTypeA')[1],
-                        foo = function () { return 'bar'; };
+                    var typeB = descendView.subs.get('typeB')[0];
+                    var typeAsubTypeA = descendView.subs.get('typeA').subs.get('typeAsubTypeA')[1];
+                    var foo = function () { return 'bar'; };
                     typeB.foo = foo;
                     typeAsubTypeA.foo = foo;
                     spyOn(typeB, 'foo');
@@ -750,7 +742,8 @@
                         spyOn(subview.$el, 'detach');
                     });
                     testView.subs.detachElems();
-                    var i = -1, len = testView.subs.subViews.length;
+                    var i = -1;
+                    var len = testView.subs.subViews.length;
                     while (++i < len) {
                         expect(testView.subs.at(i).$el.detach).toHaveBeenCalled();
                     }
@@ -760,9 +753,9 @@
 
             describe('"setLocationForType" method', function () {
                 it('should set the location property of a subview config', function () {
-                    var view = new Backbone.BaseView(),
-                        Foo = Backbone.BaseView.extend(),
-                        Bar = Backbone.BaseView.extend();
+                    var view = new Backbone.BaseView();
+                    var Foo = Backbone.BaseView.extend();
+                    var Bar = Backbone.BaseView.extend();
                     view.subs.addConfig('foo', {
                         construct: Foo,
                         singleton: true
@@ -787,9 +780,9 @@
 
             describe('"useDefaultLocationSelectors" method', function () {
                 it('should set the location config for each subview type to a string based on the type', function () {
-                    var view = new Backbone.BaseView(),
-                        Foo = Backbone.BaseView.extend(),
-                        Bar = Backbone.BaseView.extend();
+                    var view = new Backbone.BaseView();
+                    var Foo = Backbone.BaseView.extend();
+                    var Bar = Backbone.BaseView.extend();
                     view.subs.addConfig('foo', {
                         construct: Foo,
                         singleton: true
@@ -811,9 +804,9 @@
         describe('"bindViewEvents" method', function () {
 
             it('should listens for events on backbone objects based on object literal key', function () {
-                var calledEventA = false,
-                    calledEventB = false,
-                    eventAArg;
+                var calledEventA = false;
+                var calledEventB = false;
+                var eventAArg;
                 testView.foo = function (arg) {
                     calledEventA = this;
                     eventAArg = arg;
@@ -832,27 +825,27 @@
             });
 
             it('should bind backbone events on prototype in "viewEvents" property', function () {
-                var calledFooWith,
-                    calledBar = false,
-                    calledBaz = false,
-                    EventViewA = Backbone.BaseView.extend({
-                        viewEvents: {
-                            foo: function (arg) { calledFooWith = arg; }
-                        }
-                    }),
-                    EventViewB = Backbone.BaseView.extend({
-                        viewEvents: {
-                            baz: 'baz'
-                        },
-                        baz: function () { calledBaz = true; },
-                        bar: function () { calledBar = true; }
-                    }),
-                    viewA = new EventViewA(),
-                    viewB = new EventViewB({
-                        viewEvents: function () {
-                            return { bar: 'bar' };
-                        }
-                    });
+                var calledFooWith;
+                var calledBar = false;
+                var calledBaz = false;
+                var EventViewA = Backbone.BaseView.extend({
+                    viewEvents: {
+                        foo: function (arg) { calledFooWith = arg; }
+                    }
+                });
+                var EventViewB = Backbone.BaseView.extend({
+                    viewEvents: {
+                        baz: 'baz'
+                    },
+                    baz: function () { calledBaz = true; },
+                    bar: function () { calledBar = true; }
+                });
+                var viewA = new EventViewA();
+                var viewB = new EventViewB({
+                    viewEvents: function () {
+                        return { bar: 'bar' };
+                    }
+                });
                 viewA.trigger('foo', 'test-arg');
                 viewB.trigger('bar').trigger('baz');
                 expect(calledFooWith).toBe('test-arg');
@@ -861,16 +854,16 @@
             });
 
             it('should be called on instantiation and bind events if present in options', function () {
-                var calledEvent = false,
-                    view = new Backbone.BaseView({
-                        viewEvents: function () {
-                            return {
-                                testEvent : function () {
-                                    calledEvent = this;
-                                }
-                            };
-                        }
-                    });
+                var calledEvent = false;
+                var view = new Backbone.BaseView({
+                    viewEvents: function () {
+                        return {
+                            testEvent : function () {
+                                calledEvent = this;
+                            }
+                        };
+                    }
+                });
                 view.trigger('testEvent');
                 expect(calledEvent.cid).toBe(view.cid);
             });
@@ -885,7 +878,10 @@
         });
 
         describe('Backbone events view heirarchy cascading', function () {
-            var topView, cView, bView, aView;
+            var topView;
+            var cView;
+            var bView;
+            var aView;
             beforeEach(function () {
                 topView = new Backbone.BaseView();
                 cView = new Backbone.BaseView();
@@ -902,10 +898,10 @@
             describe('"triggerBubble" method', function () {
 
                 it('should trigger an event the view it\'s ancestors', function () {
-                    var triggeredOnTopViewWith,
-                        triggeredOnA,
-                        triggeredOnB,
-                        triggeredOnC;
+                    var triggeredOnTopViewWith;
+                    var triggeredOnA;
+                    var triggeredOnB;
+                    var triggeredOnC;
 
                     cView.on('foo', function () { triggeredOnC = true; });
                     cView.parentView.on('foo', function () { triggeredOnB = true; });
@@ -921,8 +917,8 @@
                 });
 
                 it('should pass the originating view as the last argument to the callback', function () {
-                    var originatingView,
-                        triggeredWith;
+                    var originatingView;
+                    var triggeredWith;
                     topView.on('foo', function (firstArg, view) {
                         triggeredWith = firstArg;
                         originatingView = view;
@@ -933,8 +929,8 @@
                 });
 
                 it('should allow stopping the event bubble by calling stopEvent method in an event callback', function () {
-                    var triggeredOnTopView = false,
-                        triggeredOnA = false;
+                    var triggeredOnTopView = false;
+                    var triggeredOnA = false;
                     topView.on('foo', function () {
                         triggeredOnTopView = true;
                     });
@@ -950,7 +946,11 @@
 
             describe('"triggerDescend" method', function () {
                 it('should trigger an event all a view\'s subviews, and their subviews, and so on', function () {
-                    var firedOnTopView = false, firedOnA = false, firedOnB = false, firedOnCWith, origView;
+                    var firedOnTopView = false;
+                    var firedOnA = false;
+                    var firedOnB = false;
+                    var firedOnCWith;
+                    var origView;
                     topView.on('foo', function () { firedOnTopView = true; });
                     topView.subs.get('a').on('foo', function () { firedOnA = true; });
                     topView.subs.get('a').subs.get('b')[0].on('foo', function () { firedOnB = true; });
@@ -967,7 +967,9 @@
                 });
                 it('should allow a subview to stop an event descending down it\'s tree with "stopEvent" method', function () {
                     topView.subs.add('altA', new Backbone.BaseView());
-                    var firedOnAltA = false, firedOnB = false, firedOnC = false;
+                    var firedOnAltA = false;
+                    var firedOnB = false;
+                    var firedOnC = false;
                     topView.subs.get('a').subs.get('b')[0].on('foo', function () {
                         firedOnB = true;
                         this.stopEvent('foo');
@@ -997,10 +999,10 @@
 
             describe('"ascend" method', function () {
                 it("if passed a function, should call it for each ancestor in ascending order", function () {
-                    var i = 0,
-                        aCid,
-                        bCid,
-                        topCid;
+                    var i = 0;
+                    var aCid;
+                    var bCid;
+                    var topCid;
                     cView.ascend(function () {
                         if (i === 0) {
                             bCid = this.cid;
@@ -1030,4 +1032,4 @@
         });
 
     });
-}(this, jQuery, Backbone, _));
+}(this, jQuery, Backbone, _)); //eslint-disable-line no-undef
