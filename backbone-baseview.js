@@ -813,7 +813,7 @@
                         location = location.call(subViews[i]);
                         if (!(location instanceof Backbone.$)) { throw new Error('location function must return instance of jQuery'); }
                     }
-                    location.append(subViews[i].$el);
+                    location.append(subViews[i].el);
                 }
             }
             return this;
